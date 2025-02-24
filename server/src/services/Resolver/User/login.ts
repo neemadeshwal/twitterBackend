@@ -64,7 +64,7 @@ class LoginUser {
           throw new Error("Account does not exist.");
         }
 
-        return { userEmail: queryByUserName.email };
+        return { email: queryByUserName.email };
       }
       return { email };
     } catch (error) {

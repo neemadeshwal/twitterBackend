@@ -132,9 +132,9 @@ const mutations = {
   ) => {
     const { authType } = payload;
 
-    const { userEmail } = await LoginUser.getLoginCreds(payload);
+    const { email } = await LoginUser.getLoginCreds(payload);
     const nextPage = authType === "login" ? "verifypassword" : "confirmyou";
-    return { email: userEmail, next_page: nextPage };
+    return { email, next_page: nextPage };
   },
   checkLoginPassword: async (
     parent: any,
