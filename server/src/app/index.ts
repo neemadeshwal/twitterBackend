@@ -21,6 +21,7 @@ import { createServer } from "http";
 import { Server as SocketIoServer } from "socket.io";
 import { handleEvents } from "../services/socket/event";
 import { Bookmarks } from "./bookmarks";
+import { CLIENT_URL } from "../utils/constants";
 
 export async function initServer() {
   const app = express();
@@ -29,7 +30,7 @@ export async function initServer() {
   app.use(bodyParser.json({ limit: "50mb" }));
   app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
   app.use(
-    cors({ origin: ["http://localhost:5000", "http://192.168.29.194:8000","https://twitterbackend-pq9a.onrender.com"],credentials: true  })
+    cors({ origin: [CLIENT_URL],credentials: true  })
   );
 
   const graphqlServer = new ApolloServer<GraphqlContext>({

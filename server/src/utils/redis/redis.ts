@@ -1,4 +1,5 @@
 import Redis from "ioredis"
+import { REDIS_URL } from "../constants"
 
-export const redis=new Redis(    "redis://default:VspgdzvbcDcKAWfEbVMHzleEIUjxhxNn@turntable.proxy.rlwy.net:56424"
+export const redis=new Redis(  REDIS_URL 
 )
