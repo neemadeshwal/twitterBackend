@@ -5,32 +5,46 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import passport from "../services/passport";
 import JWTService from "../services/jwt";
-import AuthRoute from "./user/auth"
+import AuthRoute from "./user/auth";
+import cookieParser from "cookie-parser";
+
+// In your Express app setup
 // Import types and resolvers
-import { User, Tweet, Like, Comment, Follows, Repost, Search, Bookmarks } from "./graphql";
+import {
+  User,
+  Tweet,
+  Like,
+  Comment,
+  Follows,
+  Repost,
+  Search,
+  Bookmarks,
+} from "./graphql";
 import { GraphqlContext } from "../interfaces";
 import { CLIENT_URL, MAX_REQUEST_LIMIT } from "../utils/constants";
 import fileUploadRouter from "./fileUpload";
 
 // Constants
 
-
 // Middleware configurations
 const configureMiddleware = (app: express.Application) => {
-  app.use(bodyParser.json({ limit:MAX_REQUEST_LIMIT }));
-  app.use(bodyParser.urlencoded({ 
-    extended: true, 
-    limit: MAX_REQUEST_LIMIT
-  }));
-  
-  app.use(cors({ 
-    origin: CLIENT_URL,
-    credentials: true,
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-  }));
-  
+  app.use(bodyParser.json({ limit: MAX_REQUEST_LIMIT }));
+  app.use(
+    bodyParser.urlencoded({
+      extended: true,
+      limit: MAX_REQUEST_LIMIT,
+    })
+  );
+
+  app.use(
+    cors({
+      origin: CLIENT_URL,
+      credentials: true,
+    })
+  );
+
   app.use(passport.initialize());
+  app.use(cookieParser());
 };
 
 // Configure routes
@@ -94,13 +108,20 @@ const resolvers = {
 };
 
 // GraphQL context function
-const createContext = async ({ req, res }: { req: express.Request; res: express.Response }) => {
+const createContext = async ({
+  req,
+  res,
+}: {
+  req: express.Request;
+  res: express.Response;
+}) => {
   let user;
   try {
-    const token = req.headers.authorization?.split("Bearer ")[1];
+    const token = req.cookies.token;
+    //  const token = req.headers.authorization?.split("Bearer ")[1];
     user = token ? JWTService.decodeToken(token) : undefined;
   } catch (error) {
-    console.error('Token validation error:', error);
+    console.error("Token validation error:", error);
   }
   return { user, res };
 };
@@ -116,7 +137,6 @@ export async function initServer() {
     const graphqlServer = new ApolloServer<GraphqlContext>({
       typeDefs,
       resolvers,
-      
     });
 
     await graphqlServer.start();
@@ -125,7 +145,7 @@ export async function initServer() {
     app.use(
       "/graphql",
       expressMiddleware(graphqlServer, {
-        context: createContext
+        context: createContext,
       })
     );
 
@@ -134,7 +154,7 @@ export async function initServer() {
 
     return { app };
   } catch (error) {
-    console.error('Server initialization error:', error);
+    console.error("Server initialization error:", error);
     throw error;
   }
 }

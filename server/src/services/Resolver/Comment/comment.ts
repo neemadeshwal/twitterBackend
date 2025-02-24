@@ -8,12 +8,15 @@ class CommentService {
   ) {
     const { content, tweetId, mediaArray } = payload;
 
+    console.log("tweetId", tweetId);
     if (!content || !tweetId) {
       throw new BadRequestError("Please provide comment or tweetid");
     }
+
     const isTweetExist = await prismaClient.tweet.findUnique({
-      where: { id: id },
+      where: { id: tweetId },
     });
+    console.log(isTweetExist);
     if (!isTweetExist) {
       throw new NotFoundError("Tweet doesn't exist.");
     }

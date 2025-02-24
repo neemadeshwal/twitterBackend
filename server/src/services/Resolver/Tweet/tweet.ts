@@ -10,6 +10,7 @@ class TweetService {
     id: string
   ) {
     const { content, mediaArray } = payload;
+    console.log(id, "id");
     if (!content && mediaArray.length == 0) {
       throw new BadRequestError("No content .Please provide content first.");
     }
