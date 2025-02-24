@@ -29,7 +29,7 @@ export async function initServer() {
   app.use(bodyParser.json({ limit: "50mb" }));
   app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
   app.use(
-    cors({ origin: ["http://localhost:5000", "http://192.168.29.194:8000","https://twitterbackend-pq9a.onrender.com"] })
+    cors({ origin: ["http://localhost:5000", "http://192.168.29.194:8000","https://twitterbackend-pq9a.onrender.com"],credentials: true  })
   );
 
   const graphqlServer = new ApolloServer<GraphqlContext>({
