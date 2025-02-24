@@ -26,11 +26,8 @@ export const CLOUD_SECRET = process.env.CLOUD_SECRET;
 
 export const MAX_REQUEST_LIMIT = process.env.MEDIA_LIMIT;
 
-<<<<<<< HEAD
-export const REDIS_URL=process.env.REDIS_URL!
+export const REDIS_URL = process.env.REDIS_URL!;
 
-export const CLIENT_URL=process.env.CLIENT_URL!
-=======
 export const CLIENT_URL = process.env.CLIENT_URL!;
 
 export const REDIS_HOST = process.env.REDIS_HOST!;
@@ -38,6 +35,3 @@ export const REDIS_HOST = process.env.REDIS_HOST!;
 export const REDIS_PORT = Number(process.env.REDIS_PORT!);
 
 export const REDIS_PASSWORD = process.env.REDIS_PASSWORD!;
-
-export const REDIS_URL = process.env.REDIS_URL;
->>>>>>> old-repo/master
