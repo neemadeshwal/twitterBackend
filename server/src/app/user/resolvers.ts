@@ -95,7 +95,9 @@ const mutations = {
     if (ctx && ctx.res) {
       ctx.res.cookie("token", token, {
         httpOnly: true,
-        maxAge: 3600000 * 48, // 48 hours
+        secure: process.env.NODE_ENV === "production", // Must be true in production
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' is crucial for cross-origin in production
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
     } else {
       throw new Error("Response object is not available in the context");
@@ -145,7 +147,9 @@ const mutations = {
     if (ctx && ctx.res) {
       ctx.res.cookie("token", token, {
         httpOnly: true,
-        maxAge: 3600000 * 48, // 48 hours
+        secure: process.env.NODE_ENV === "production", // Must be true in production
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' is crucial for cross-origin in production
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
     } else {
       throw new Error("Response object is not available in the context");
@@ -178,7 +182,9 @@ const mutations = {
     if (ctx && ctx.res) {
       ctx.res.cookie("token", token, {
         httpOnly: true,
-        maxAge: 3600000 * 48, // 48 hours
+        secure: process.env.NODE_ENV === "production", // Must be true in production
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' is crucial for cross-origin in production
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
     } else {
       throw new Error("Response object is not available in the context");

@@ -40,6 +40,8 @@ const configureMiddleware = (app: express.Application) => {
     cors({
       origin: CLIENT_URL,
       credentials: true,
+      methods: ["GET", "POST", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
     })
   );
 
