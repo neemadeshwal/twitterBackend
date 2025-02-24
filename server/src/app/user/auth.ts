@@ -35,7 +35,7 @@ router.get(
 
     if (exisitingUser) {
       const token = await JWTService.generateTokenFromUser(exisitingUser);
-      res.cookie("token", token, { httpOnly: false });
+      res.cookie("token", token, { httpOnly: false, maxAge: 3600000*72 });
       res.redirect("http://192.168.29.194:5000");
     } else {
       const firstName = req.user.name.givenName;

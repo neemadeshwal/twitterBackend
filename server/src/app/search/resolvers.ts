@@ -1,5 +1,5 @@
-import { prismaClient } from "../../client/db";
 import { GraphqlContext } from "../../interfaces";
+import SearchService from "../../services/Resolver/Search/query";
 
 const queries = {
   searchQuery: async (
@@ -10,67 +10,7 @@ const queries = {
     if (!ctx.user) {
       throw new Error("Unauthorized.");
     }
-    const { query } = payload;
-    if (!query) {
-      throw new Error("No query present.Please provide query first.");
-    }
-
-    const people = await prismaClient.user.findMany({
-      where: {
-        OR: [
-          {
-            firstName: { contains: query, mode: "insensitive" },
-          },
-          {
-            lastName: { contains: query, mode: "insensitive" },
-          },
-
-          { userName: { contains: query, mode: "insensitive" } },
-        ],
-      },
-      orderBy: {
-        followers: {
-          _count: "desc",
-        },
-      },
-    });
-    const latest = await prismaClient.tweet.findMany({
-      where: {
-        content: { contains: query, mode: "insensitive" },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-    const post = await prismaClient.tweet.findMany({
-      where: {
-        content: { contains: query, mode: "insensitive" },
-      },
-      orderBy: {
-        likedBy: {
-          _count: "desc",
-        },
-      },
-    });
-
-    const media = await prismaClient.tweet.findMany({
-      where: {
-        mediaArray: {
-          isEmpty: false,
-        },
-        content: { contains: query, mode: "insensitive" },
-      },
-    });
-    const hashtag = await prismaClient.hashtag.findMany({
-      where: {
-        text: { contains: query, mode: "insensitive" },
-      },
-      include: {
-        tweets: true,
-      },
-    });
-    return { post, people, hashtag, media, latest };
+    return await SearchService.searchQuery(payload);
   },
 };
 

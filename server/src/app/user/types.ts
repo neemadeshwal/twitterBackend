@@ -12,7 +12,6 @@ next_page:String
 
 }
 type createAccount{
-    token:String
 next_page:String
 message:String
 
@@ -34,12 +33,10 @@ input resetPasswordInput{
     password:String
 }
 type resetPassword{
-    token:String
     next_page:String
     message:String
 }
 type checkLoginPassword{
-    token:String
 next_page:String
 message:String}
 

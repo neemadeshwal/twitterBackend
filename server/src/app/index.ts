@@ -1,58 +1,64 @@
 import express from "express";
 import { expressMiddleware } from "@apollo/server/express4";
-import bodyParser from "body-parser";
-import AuthRoute from "./user/auth";
-import cors from "cors";
 import { ApolloServer } from "@apollo/server";
+import bodyParser from "body-parser";
+import cors from "cors";
 import passport from "../services/passport";
-import { User } from "./user";
-import { GraphqlContext } from "../interfaces";
 import JWTService from "../services/jwt";
-import { Tweet } from "./tweet";
-import { Like } from "./like";
-import { Comment } from "./comment";
-import { Follows } from "./follows";
-// import { UploadFile } from "./uploadFile";
-import { GraphQLUpload } from "graphql-upload";
-import FileUploadRouter from "./fileUpload";
-import { Repost } from "./repost";
-import { Search } from "./search";
-import { createServer } from "http";
-import { Server as SocketIoServer } from "socket.io";
-import { handleEvents } from "../services/socket/event";
-import { Bookmarks } from "./bookmarks";
-import { CLIENT_URL } from "../utils/constants";
+import AuthRoute from "./user/auth"
+// Import types and resolvers
+import { User, Tweet, Like, Comment, Follows, Repost, Search, Bookmarks } from "./graphql";
+import { GraphqlContext } from "../interfaces";
+import { CLIENT_URL, MAX_REQUEST_LIMIT } from "../utils/constants";
+import fileUploadRouter from "./fileUpload";
 
-export async function initServer() {
-  const app = express();
-  const httpserver = createServer(app);
+// Constants
 
-  app.use(bodyParser.json({ limit: "50mb" }));
-  app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
-  app.use(
-    cors({ origin: [CLIENT_URL],credentials: true  })
-  );
 
-  const graphqlServer = new ApolloServer<GraphqlContext>({
-    typeDefs: `
-    ${User.types}
-    ${Tweet.types}
-    ${Like.types}
-    ${Comment.types}
-    ${Follows.types}
-    ${Repost.types}
-    ${Search.types}
-    ${Bookmarks.types}
+// Middleware configurations
+const configureMiddleware = (app: express.Application) => {
+  app.use(bodyParser.json({ limit:MAX_REQUEST_LIMIT }));
+  app.use(bodyParser.urlencoded({ 
+    extended: true, 
+    limit: MAX_REQUEST_LIMIT
+  }));
   
-    type Query {
-      ${User.queries}
-      ${Tweet.queries}
-      ${Comment.queries}
+  app.use(cors({ 
+    origin: CLIENT_URL,
+    credentials: true,
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  }));
+  
+  app.use(passport.initialize());
+};
+
+// Configure routes
+const configureRoutes = (app: express.Application) => {
+  app.use("/api/auth", AuthRoute);
+  app.use("/api/uploads", fileUploadRouter);
+};
+
+// Combine all GraphQL types
+const typeDefs = `
+  ${User.types}
+  ${Tweet.types}
+  ${Like.types}
+  ${Comment.types}
+  ${Follows.types}
+  ${Repost.types}
+  ${Search.types}
+  ${Bookmarks.types}
+
+  type Query {
+    ${User.queries}
+    ${Tweet.queries}
+    ${Comment.queries}
     ${Search.queries}
     ${Bookmarks.queries}
+  }
 
-    }
-    type Mutation{
+  type Mutation {
     ${User.mutations}
     ${Tweet.mutations}
     ${Like.mutations}
@@ -60,63 +66,75 @@ export async function initServer() {
     ${Follows.mutations}
     ${Repost.mutations}
     ${Bookmarks.mutations}
-    }
-    `,
-    resolvers: {
-      Mutation: {
-        ...User.resolvers.mutations,
-        ...Tweet.resolvers.mutations,
-        ...Like.resolvers.mutations,
-        ...Comment.resolvers.mutations,
-        ...Follows.resolvers.mutations,
-        ...Repost.resolvers.mutations,
-        ...Bookmarks.resolvers.mutations,
-      },
-      Query: {
-        ...User.resolvers.queries,
-        ...Tweet.resolvers.queries,
-        ...Comment.resolvers.queries,
-        ...Search.resolvers.queries,
-        ...Bookmarks.resolvers.queries,
-      },
-      ...User.resolvers.extraResolvers,
-      ...Tweet.resolvers.extraResolvers,
-      ...Comment.resolvers.extraResolvers,
-      ...Bookmarks.resolvers.extraResolvers,
-    },
-  });
+  }
+`;
 
-  await graphqlServer.start();
+// Combine all resolvers
+const resolvers = {
+  Query: {
+    ...User.resolvers.queries,
+    ...Tweet.resolvers.queries,
+    ...Comment.resolvers.queries,
+    ...Search.resolvers.queries,
+    ...Bookmarks.resolvers.queries,
+  },
+  Mutation: {
+    ...User.resolvers.mutations,
+    ...Tweet.resolvers.mutations,
+    ...Like.resolvers.mutations,
+    ...Comment.resolvers.mutations,
+    ...Follows.resolvers.mutations,
+    ...Repost.resolvers.mutations,
+    ...Bookmarks.resolvers.mutations,
+  },
+  ...User.resolvers.extraResolvers,
+  ...Tweet.resolvers.extraResolvers,
+  ...Comment.resolvers.extraResolvers,
+  ...Bookmarks.resolvers.extraResolvers,
+};
 
-  app.use(
-    "/graphql",
-    expressMiddleware(graphqlServer, {
-      context: async ({ req, res }) => {
-        return {
-          user: req.headers.authorization
-            ? JWTService.decodeToken(
-                req.headers.authorization.split("Bearer ")[1]
-              )
-            : undefined,
-          io,
-        };
-      },
-    })
-  );
+// GraphQL context function
+const createContext = async ({ req, res }: { req: express.Request; res: express.Response }) => {
+  let user;
+  try {
+    const token = req.headers.authorization?.split("Bearer ")[1];
+    user = token ? JWTService.decodeToken(token) : undefined;
+  } catch (error) {
+    console.error('Token validation error:', error);
+  }
+  return { user, res };
+};
 
-  app.use(passport.initialize());
-  app.use("/api/auth", AuthRoute);
-  app.use("/api/uploads", FileUploadRouter);
+export async function initServer() {
+  try {
+    const app = express();
 
-  const io = new SocketIoServer(httpserver, {
-    cors: {
-      origin: "http://localhost:5000",
-      methods: ["GET", "POST"],
-    },
-  });
-  io.on("connection", (socket) => {
-    handleEvents(socket);
-  });
+    // Configure middleware
+    configureMiddleware(app);
 
-  return { app, io, httpserver };
+    // Initialize Apollo Server
+    const graphqlServer = new ApolloServer<GraphqlContext>({
+      typeDefs,
+      resolvers,
+      
+    });
+
+    await graphqlServer.start();
+
+    // Configure GraphQL endpoint
+    app.use(
+      "/graphql",
+      expressMiddleware(graphqlServer, {
+        context: createContext
+      })
+    );
+
+    // Configure routes
+    configureRoutes(app);
+
+    return { app };
+  } catch (error) {
+    console.error('Server initialization error:', error);
+    throw error;
+  }
 }
