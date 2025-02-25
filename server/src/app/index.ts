@@ -38,7 +38,7 @@ const configureMiddleware = (app: express.Application) => {
 
   app.use(
     cors({
-      origin: [CLIENT_URL, "http://192.168.29.193:5000","http:// 192.168.1.5:5000"],
+      origin: [CLIENT_URL, "http://192.168.29.193:5000","http://192.168.1.5:5000"],
       credentials: true,
       methods: ["GET", "POST", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
@@ -119,8 +119,11 @@ const createContext = async ({
 }) => {
   let user;
   try {
-    const token = req.cookies.token;
+    let token = req.cookies.token;
     //  const token = req.headers.authorization?.split("Bearer ")[1];
+    if (!token && req.headers.authorization) {
+      token = req.headers.authorization.split("Bearer ")[1];
+    }
     user = token ? JWTService.decodeToken(token) : undefined;
   } catch (error) {
     console.error("Token validation error:", error);
