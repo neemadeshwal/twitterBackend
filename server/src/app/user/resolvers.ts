@@ -93,12 +93,18 @@ const mutations = {
   ) => {
     const { token } = await SignUpUserService.createAccount(payload);
     if (ctx && ctx.res) {
-      ctx.res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // Must be true in production
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' is crucial for cross-origin in production
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
+      const isProduction = process.env.NODE_ENV === "production";
+  const sameSiteSetting = isProduction ? "none" : "lax";
+  
+  // If sameSite is 'none', secure must be true
+  const secureSetting = isProduction || sameSiteSetting === "none";
+  
+  ctx.res.cookie("token", token, {
+    httpOnly: true,
+    secure: secureSetting,
+    sameSite: sameSiteSetting,
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
     } else {
       throw new Error("Response object is not available in the context");
     }
@@ -145,11 +151,17 @@ const mutations = {
   ) => {
     const { token } = await LoginUser.checkLoginPassword(payload);
     if (ctx && ctx.res) {
+      const isProduction = process.env.NODE_ENV === "production";
+      const sameSiteSetting = isProduction ? "none" : "lax";
+      
+      // If sameSite is 'none', secure must be true
+      const secureSetting = isProduction || sameSiteSetting === "none";
+      
       ctx.res.cookie("token", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // Must be true in production
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' is crucial for cross-origin in production
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+        secure: secureSetting,
+        sameSite: sameSiteSetting,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
     } else {
       throw new Error("Response object is not available in the context");
@@ -180,12 +192,18 @@ const mutations = {
   ) => {
     const { token } = await LoginUser.resetPassword(payload);
     if (ctx && ctx.res) {
-      ctx.res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // Must be true in production
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' is crucial for cross-origin in production
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
+      const isProduction = process.env.NODE_ENV === "production";
+  const sameSiteSetting = isProduction ? "none" : "lax";
+  
+  // If sameSite is 'none', secure must be true
+  const secureSetting = isProduction || sameSiteSetting === "none";
+  
+  ctx.res.cookie("token", token, {
+    httpOnly: true,
+    secure: secureSetting,
+    sameSite: sameSiteSetting,
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
     } else {
       throw new Error("Response object is not available in the context");
     }
