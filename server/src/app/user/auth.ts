@@ -3,6 +3,7 @@ import passport from "../../services/passport";
 import { prismaClient } from "../../client/db";
 import JWTService from "../../services/jwt";
 import { getRandomDarkHexColor } from "../../utils/getRandomColor";
+import { CLIENT_URL } from "../../utils/constants";
 
 const router = Express.Router();
 
@@ -36,7 +37,7 @@ router.get(
     if (exisitingUser) {
       const token = await JWTService.generateTokenFromUser(exisitingUser);
       res.cookie("token", token, { httpOnly: false, maxAge: 3600000*72 });
-      res.redirect("http://192.168.29.194:5000");
+      res.redirect(CLIENT_URL);
     } else {
       const firstName = req.user.name.givenName;
       const lastName = req.user.name.lastName ?? "";
@@ -71,7 +72,7 @@ router.get(
       console.log(token, "token");
       res.cookie("token", token, { httpOnly: false });
 
-      res.redirect("http://192.168.29.194:5000");
+      res.redirect(CLIENT_URL);
     }
   }
 );

@@ -38,7 +38,7 @@ const configureMiddleware = (app: express.Application) => {
 
   app.use(
     cors({
-      origin: [CLIENT_URL, "http://192.168.29.193:5000","http://192.168.1.5:5000"],
+      origin: [CLIENT_URL],
       credentials: true,
       methods: ["GET", "POST", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
