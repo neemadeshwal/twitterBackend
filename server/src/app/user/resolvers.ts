@@ -11,6 +11,7 @@ import {
 import UserQueryService from "../../services/Resolver/User/query";
 import { extraResolvers } from "./extraResolvers";
 import { AuthenticationError } from "../../error/errors";
+import { CLIENT_URL } from "../../utils/constants";
 
 //queries
 
@@ -162,6 +163,9 @@ const mutations = {
       secure: true, // Must be true for cross-origin
       sameSite: "none", // Must be "none" for cross-origin
       maxAge: 3 * 24 * 60 * 60 * 1000, 
+      domain:CLIENT_URL
+
+      
       });
     } else {
       throw new Error("Response object is not available in the context");
