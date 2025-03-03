@@ -162,8 +162,7 @@ const mutations = {
         httpOnly: true,
       secure: true, // Must be true for cross-origin
       sameSite: "none", // Must be "none" for cross-origin
-      maxAge: 3 * 24 * 60 * 60 * 1000, 
-      domain:CLIENT_URL
+      maxAge: 3 * 24 * 60 * 60 * 1000
 
       
       });
