@@ -104,6 +104,7 @@ const mutations = {
     httpOnly: true,
     secure: secureSetting,
     sameSite: sameSiteSetting,
+    domain: '.kiduniya.in',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
     } else {
@@ -162,7 +163,7 @@ const mutations = {
         httpOnly: true,
       secure: true, // Must be true for cross-origin
       sameSite: "none", // Must be "none" for cross-origin
-        path:"/",
+        domain: '.kiduniya.in',
       maxAge: 3 * 24 * 60 * 60 * 1000
 
       
