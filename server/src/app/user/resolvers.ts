@@ -11,7 +11,6 @@ import {
 import UserQueryService from "../../services/Resolver/User/query";
 import { extraResolvers } from "./extraResolvers";
 import { AuthenticationError } from "../../error/errors";
-import { CLIENT_URL } from "../../utils/constants";
 
 //queries
 
@@ -95,17 +94,17 @@ const mutations = {
     const { token } = await SignUpUserService.createAccount(payload);
     if (ctx && ctx.res) {
       const isProduction = process.env.NODE_ENV === "production";
-  const sameSiteSetting = isProduction ? "none" : "lax";
-  
-  // If sameSite is 'none', secure must be true
-  const secureSetting = isProduction || sameSiteSetting === "none";
-  
-  ctx.res.cookie("token", token, {
-    httpOnly: true,
-    secure: secureSetting,
-    sameSite: sameSiteSetting,
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  });
+      const sameSiteSetting = isProduction ? "none" : "lax";
+
+      // If sameSite is 'none', secure must be true
+      const secureSetting = isProduction || sameSiteSetting === "none";
+
+      ctx.res.cookie("token", token, {
+        httpOnly: true,
+        secure: secureSetting,
+        sameSite: sameSiteSetting,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
     } else {
       throw new Error("Response object is not available in the context");
     }
@@ -154,17 +153,17 @@ const mutations = {
     if (ctx && ctx.res) {
       const isProduction = process.env.NODE_ENV === "production";
       const sameSiteSetting = isProduction ? "none" : "lax";
-      
+
       // If sameSite is 'none', secure must be true
       const secureSetting = isProduction || sameSiteSetting === "none";
-      
+
       ctx.res.cookie("token", token, {
         httpOnly: true,
-      secure: true, // Must be true for cross-origin
-      sameSite: "none", // Must be "none" for cross-origin
-      maxAge: 3 * 24 * 60 * 60 * 1000
+        secure: true,
+        sameSite: true,
+        path: "/",
 
-      
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
     } else {
       throw new Error("Response object is not available in the context");
@@ -196,17 +195,17 @@ const mutations = {
     const { token } = await LoginUser.resetPassword(payload);
     if (ctx && ctx.res) {
       const isProduction = process.env.NODE_ENV === "production";
-  const sameSiteSetting = isProduction ? "none" : "lax";
-  
-  // If sameSite is 'none', secure must be true
-  const secureSetting = isProduction || sameSiteSetting === "none";
-  
-  ctx.res.cookie("token", token, {
-    httpOnly: true,
-    secure: secureSetting,
-    sameSite: sameSiteSetting,
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  });
+      const sameSiteSetting = isProduction ? "none" : "lax";
+
+      // If sameSite is 'none', secure must be true
+      const secureSetting = isProduction || sameSiteSetting === "none";
+
+      ctx.res.cookie("token", token, {
+        httpOnly: true,
+        secure: secureSetting,
+        sameSite: sameSiteSetting,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
     } else {
       throw new Error("Response object is not available in the context");
     }
