@@ -70,7 +70,13 @@ const mutations = {
       return { email, next_page: "verifyotp" };
     } catch (error) {
       console.error("An error occured", error);
-      throw new Error("An error occurred while processing your request.");
+      if (error instanceof Error) {
+        // Now you can safely access `error.message` as it's a string
+        throw new Error(error.message);
+      } else {
+        // Handle the case where `error` is not an instance of `Error`
+        throw new Error("An unknown error occurred.");
+      }
     }
   },
   verifyOtp: async (

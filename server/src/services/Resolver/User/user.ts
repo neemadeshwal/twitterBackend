@@ -42,12 +42,11 @@ class UserService {
       await redis.get(`unverifiedUser:${email}`);
 
       await sendOtp(email);
+      return { email };
     } catch (error) {
       console.error("Error sending OTP:", error);
       throw new Error("Failed to send OTP. Please try again.");
     }
-
-    return { email };
   }
 }
 
