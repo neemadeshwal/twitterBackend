@@ -10,7 +10,13 @@ import {
 } from "../../utils/types";
 import UserQueryService from "../../services/Resolver/User/query";
 import { extraResolvers } from "./extraResolvers";
+<<<<<<< HEAD
 import { AuthenticationError } from "../../error/errors";
+=======
+import { AuthenticationError, BadRequestError } from "../../error/errors";
+import { CLIENT_URL } from "../../utils/constants";
+import { GraphQLError } from "graphql";
+>>>>>>> df6761179ffd5e1b338a7a59714577ff71ba694d
 
 //queries
 
@@ -66,9 +72,10 @@ const mutations = {
     ctx: any
   ) => {
     try {
-      const { email } = await UserService.getCredAndSendOtp(payload);
+      const { email } = await SignUpUserService.getCredAndSendOtp(payload);
       return { email, next_page: "verifyotp" };
     } catch (error) {
+<<<<<<< HEAD
       console.error("An error occured", error);
       if (error instanceof Error) {
         // Now you can safely access `error.message` as it's a string
@@ -77,6 +84,19 @@ const mutations = {
         // Handle the case where `error` is not an instance of `Error`
         throw new Error("An unknown error occurred.");
       }
+=======
+      console.log(error instanceof BadRequestError,"check bad request")
+      if (!(error instanceof GraphQLError)) {
+        console.error("Error in getCredAndSendOtp:", error);
+        throw new GraphQLError("Internal server error", {
+          extensions: {
+            code: "INTERNAL_SERVER_ERROR"
+          }
+        });
+      }
+      throw error;
+    
+>>>>>>> df6761179ffd5e1b338a7a59714577ff71ba694d
     }
   },
   verifyOtp: async (

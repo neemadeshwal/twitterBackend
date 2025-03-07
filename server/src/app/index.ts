@@ -23,6 +23,7 @@ import {
 import { GraphqlContext } from "../interfaces";
 import { CLIENT_URL, MAX_REQUEST_LIMIT } from "../utils/constants";
 import fileUploadRouter from "./fileUpload";
+import { BadRequestError } from "../error/errors";
 
 // Constants
 
@@ -142,6 +143,35 @@ export async function initServer() {
     const graphqlServer = new ApolloServer<GraphqlContext>({
       typeDefs,
       resolvers,
+      formatError: (error) => {
+        // Log the error for debugging (optional)
+        console.error("GraphQL Error:", error);
+
+        // Access error details from extensions
+        const code = error.extensions?.code || "INTERNAL_SERVER_ERROR";
+
+        // Check for specific error types
+        if (
+          code === "BAD_REQUEST" ||
+          error.message.includes("User already exists")
+        ) {
+          return {
+            message: error.message,
+            code: "BAD_REQUEST",
+            path: error.path,
+            extensions: {
+              code: "BAD_REQUEST",
+            },
+          };
+        }
+
+        // Default error format
+        return {
+          message: error.message,
+          code: code,
+          path: error.path,
+        };
+      },
     });
 
     await graphqlServer.start();

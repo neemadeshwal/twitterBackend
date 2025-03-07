@@ -27,6 +27,10 @@ class SignUpUserService {
         throw new BadRequestError("User already exists. Please login");
       }
     } catch (error) {
+      if (error instanceof BadRequestError) {
+        throw error;
+      }
+      // Otherwise, log and throw a generic error
       console.error("Error checking if user exists:", error);
       throw new Error("Internal server error while checking user existence.");
     }
