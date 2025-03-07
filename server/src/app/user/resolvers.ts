@@ -10,8 +10,9 @@ import {
 } from "../../utils/types";
 import UserQueryService from "../../services/Resolver/User/query";
 import { extraResolvers } from "./extraResolvers";
-import { AuthenticationError } from "../../error/errors";
+import { AuthenticationError, BadRequestError } from "../../error/errors";
 import { CLIENT_URL } from "../../utils/constants";
+import { GraphQLError } from "graphql";
 
 //queries
 
@@ -67,11 +68,20 @@ const mutations = {
     ctx: any
   ) => {
     try {
-      const { email } = await UserService.getCredAndSendOtp(payload);
+      const { email } = await SignUpUserService.getCredAndSendOtp(payload);
       return { email, next_page: "verifyotp" };
     } catch (error) {
-      console.error("An error occured", error);
-      throw new Error("An error occurred while processing your request.");
+      console.log(error instanceof BadRequestError,"check bad request")
+      if (!(error instanceof GraphQLError)) {
+        console.error("Error in getCredAndSendOtp:", error);
+        throw new GraphQLError("Internal server error", {
+          extensions: {
+            code: "INTERNAL_SERVER_ERROR"
+          }
+        });
+      }
+      throw error;
+    
     }
   },
   verifyOtp: async (
