@@ -1,5 +1,9 @@
 import { prismaClient } from "../../../client/db";
-import { BadRequestError, NotFoundError } from "../../../error/errors";
+import {
+  BadRequestError,
+  NotFoundError,
+  ValidationError,
+} from "../../../error/errors";
 import { checkHashedPassword, hashPassword } from "../../../utils/hashPassword";
 import { sendOtp } from "../../../utils/nodemailer";
 import { redis } from "../../../utils/redis/redis";
@@ -15,7 +19,9 @@ class LoginUser {
         where: { email: email },
       });
       if (!user) {
-        throw new Error("User does not exist. Please create an account first");
+        throw new BadRequestError(
+          "User does not exist. Please create an account first"
+        );
       }
 
       const data = {
@@ -38,6 +44,10 @@ class LoginUser {
 
       return { email };
     } catch (error) {
+      if (error instanceof BadRequestError || NotFoundError) {
+        throw error;
+      }
+
       console.error("Error in confirmedMail:", error);
       throw new Error("An error occurred while processing your request.");
     }
@@ -50,7 +60,7 @@ class LoginUser {
     const { email, authType } = payload;
 
     if (!email || !authType) {
-      throw new Error("Please provide required credentials.");
+      throw new BadRequestError("Please provide required credentials.");
     }
 
     try {
@@ -61,13 +71,16 @@ class LoginUser {
           where: { userName: email },
         });
         if (!queryByUserName) {
-          throw new Error("Account does not exist.");
+          throw new NotFoundError("Account does not exist.");
         }
 
         return { email: queryByUserName.email };
       }
       return { email };
     } catch (error) {
+      if (error instanceof BadRequestError || error instanceof NotFoundError) {
+        throw error;
+      }
       console.error("Error in getLoginCreds:", error);
       throw new Error("An error occurred while processing login credentials.");
     }
@@ -80,29 +93,38 @@ class LoginUser {
     const { email, password } = payload;
 
     if (!email || !password) {
-      throw new Error("Please provide required credentials");
+      throw new BadRequestError("Please provide required credentials");
     }
 
     try {
       const user = await prismaClient.user.findUnique({ where: { email } });
 
       if (!user) {
-        throw new Error("Account does not exist");
+        throw new NotFoundError("Account does not exist");
       }
 
       if (!user.password) {
-        throw new Error("Password is not set. Please set the password first.");
+        throw new ValidationError(
+          "Password is not set. Please set the password first."
+        );
       }
 
       const verifyPassword = await checkHashedPassword(password, user.password);
 
       if (!verifyPassword) {
-        throw new Error("Password is invalid. Please try again.");
+        throw new BadRequestError("Password is invalid. Please try again.");
       }
 
       const token = await JWTService.generateTokenFromUser(user);
       return { token };
     } catch (error) {
+      if (
+        error instanceof BadRequestError ||
+        error instanceof NotFoundError ||
+        error instanceof ValidationError
+      ) {
+        throw error;
+      }
       console.error("Error in checkLoginPassword:", error);
       throw new Error("An error occurred while checking your password.");
     }
@@ -115,7 +137,7 @@ class LoginUser {
     const { email, password } = payload;
 
     if (!email || !password) {
-      throw new Error("No email or password found.");
+      throw new BadRequestError("No email or password found.");
     }
 
     try {
@@ -124,7 +146,7 @@ class LoginUser {
       });
 
       if (!user) {
-        throw new Error("No user found.");
+        throw new NotFoundError("No user found.");
       }
 
       const hashedPassword = await hashPassword(password);
@@ -137,8 +159,16 @@ class LoginUser {
       });
 
       const token = await JWTService.generateTokenFromUser(resetUserPassword);
+
       return { token };
     } catch (error) {
+      if (
+        error instanceof BadRequestError ||
+        error instanceof NotFoundError ||
+        error instanceof ValidationError
+      ) {
+        throw error;
+      }
       console.error("Error in resetPassword:", error);
       throw new Error("An error occurred while resetting the password.");
     }

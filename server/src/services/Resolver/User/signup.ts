@@ -26,46 +26,32 @@ class SignUpUserService {
       if (user) {
         throw new BadRequestError("User already exists. Please login");
       }
-    } catch (error) {
-      if (error instanceof BadRequestError) {
-        throw error;
-      }
-      // Otherwise, log and throw a generic error
-      console.error("Error checking if user exists:", error);
-      throw new Error("Internal server error while checking user existence.");
-    }
-
-    const data = { email, firstName, lastName, dateOfBirth };
-    const expiryTime = 60 * 60 * 24;
-
-    try {
+      const data = { email, firstName, lastName, dateOfBirth };
+      const expiryTime = 60 * 60 * 24;
       await redis.set(
         `unverifiedUser:${email}`,
         JSON.stringify(data),
         "EX",
         expiryTime
       );
-    } catch (error) {
-      console.error("Error saving data to Redis:", error);
-      throw new Error("Internal server error while saving user data.");
-    }
-
-    try {
       await redis.get(`unverifiedUser:${email}`);
       await sendOtp(email);
+      return { email };
     } catch (error) {
-      console.error("Error sending OTP:", error);
-      throw new Error("Failed to send OTP. Please try again.");
+      if (error instanceof BadRequestError) {
+        throw error;
+      }
+      console.error("Error checking if user exists:", error);
+      throw new Error("Internal server error while checking user existence.");
+      // Otherwise, log and throw a generic error
     }
-
-    return { email };
   }
 
   public static async verifyOtp(payload: verifyOtpPayload) {
     const { email, otp, authType } = payload;
 
     if (!email || !otp) {
-      throw new NotFoundError("Please provide required credentials");
+      throw new BadRequestError("Please provide required credentials");
     }
 
     let user;
@@ -73,59 +59,45 @@ class SignUpUserService {
       user = await prismaClient.user.findUnique({
         where: { email: email },
       });
+
+      if (user && authType === "createaccount") {
+        throw new BadRequestError("User already exists. Please login");
+      }
+      let storedOtp;
+
+      storedOtp = await redis.get(`Otp/:${email}`);
+
+      if (!storedOtp) {
+        throw new BadRequestError(
+          "No OTP or OTP expired. Please request a new OTP to verify your account."
+        );
+      }
+      const storedOtpCred = JSON.parse(storedOtp);
+      if (storedOtpCred.otp !== Number(otp)) {
+        throw new BadRequestError("Invalid OTP! Please enter the correct OTP.");
+      }
+      let oldData;
+      oldData = await redis.get(`unverifiedUser:${email}`);
+      if (!oldData) {
+        throw new Error("Error occurred. Please re-enter your credentials.");
+      }
+      const newData = JSON.stringify({
+        ...JSON.parse(oldData),
+        verified: true,
+      });
+      await redis.set(`verifiedUser:${email}`, newData);
+
+      const nextPage = authType === "forgotpass" ? "newpass" : "password";
+      return { email, nextPage };
     } catch (error) {
-      console.error(
-        "Error checking user existence during OTP verification:",
-        error
-      );
+      if (error instanceof BadRequestError || error instanceof NotFoundError) {
+        throw error;
+      }
+
+      // Log and throw a generic error for other cases
+      console.error("Error during OTP verification:", error);
       throw new Error("Internal server error while verifying OTP.");
     }
-
-    if (user && authType === "createaccount") {
-      throw new BadRequestError("User already exists. Please login");
-    }
-
-    let storedOtp;
-    try {
-      storedOtp = await redis.get(`Otp/:${email}`);
-    } catch (error) {
-      console.error("Error retrieving OTP from Redis:", error);
-      throw new Error("Internal server error while fetching OTP.");
-    }
-
-    if (!storedOtp) {
-      throw new BadRequestError(
-        "No OTP or OTP expired. Please request a new OTP to verify your account."
-      );
-    }
-
-    const storedOtpCred = JSON.parse(storedOtp);
-    if (storedOtpCred.otp !== Number(otp)) {
-      throw new BadRequestError("Invalid OTP! Please enter the correct OTP.");
-    }
-
-    let oldData;
-    try {
-      oldData = await redis.get(`unverifiedUser:${email}`);
-    } catch (error) {
-      console.error("Error retrieving unverified user data from Redis:", error);
-      throw new Error("Internal server error while fetching user data.");
-    }
-
-    if (!oldData) {
-      throw new Error("Error occurred. Please re-enter your credentials.");
-    }
-
-    const newData = JSON.stringify({ ...JSON.parse(oldData), verified: true });
-    try {
-      await redis.set(`verifiedUser:${email}`, newData);
-    } catch (error) {
-      console.error("Error saving verified user data to Redis:", error);
-      throw new Error("Internal server error while saving verified user data.");
-    }
-
-    const nextPage = authType === "forgotpass" ? "newpass" : "password";
-    return { email, nextPage };
   }
 
   public static async createAccount(payload: createAccountPayload) {
@@ -244,12 +216,11 @@ class SignUpUserService {
 
     try {
       await sendOtp(email);
+      return { email };
     } catch (error) {
       console.error("Error resending OTP:", error);
       throw new Error("Failed to resend OTP. Please try again.");
     }
-
-    return { email };
   }
 }
 

@@ -10,13 +10,12 @@ import {
 } from "../../utils/types";
 import UserQueryService from "../../services/Resolver/User/query";
 import { extraResolvers } from "./extraResolvers";
-<<<<<<< HEAD
-import { AuthenticationError } from "../../error/errors";
-=======
-import { AuthenticationError, BadRequestError } from "../../error/errors";
-import { CLIENT_URL } from "../../utils/constants";
-import { GraphQLError } from "graphql";
->>>>>>> df6761179ffd5e1b338a7a59714577ff71ba694d
+import {
+  AuthenticationError,
+  BadRequestError,
+  NotFoundError,
+  ValidationError,
+} from "../../error/errors";
 
 //queries
 
@@ -75,28 +74,11 @@ const mutations = {
       const { email } = await SignUpUserService.getCredAndSendOtp(payload);
       return { email, next_page: "verifyotp" };
     } catch (error) {
-<<<<<<< HEAD
-      console.error("An error occured", error);
-      if (error instanceof Error) {
-        // Now you can safely access `error.message` as it's a string
-        throw new Error(error.message);
-      } else {
-        // Handle the case where `error` is not an instance of `Error`
-        throw new Error("An unknown error occurred.");
+      if (error instanceof BadRequestError) {
+        throw error;
       }
-=======
-      console.log(error instanceof BadRequestError,"check bad request")
-      if (!(error instanceof GraphQLError)) {
-        console.error("Error in getCredAndSendOtp:", error);
-        throw new GraphQLError("Internal server error", {
-          extensions: {
-            code: "INTERNAL_SERVER_ERROR"
-          }
-        });
-      }
-      throw error;
-    
->>>>>>> df6761179ffd5e1b338a7a59714577ff71ba694d
+      console.error("Error checking if user exists:", error);
+      throw new Error("Internal server error while checking user existence.");
     }
   },
   verifyOtp: async (
@@ -108,8 +90,11 @@ const mutations = {
       const { email, nextPage } = await SignUpUserService.verifyOtp(payload);
       return { email, next_page: nextPage };
     } catch (error) {
-      console.error("An error occured", error);
-      throw new Error("An error occurred while processing your request.");
+      if (error instanceof BadRequestError || error instanceof NotFoundError) {
+        throw error;
+      }
+      console.error("Error during OTP verification:", error);
+      throw new Error("Internal server error while verifying OTP.");
     }
   },
   createAccount: async (
@@ -120,7 +105,7 @@ const mutations = {
     const { token } = await SignUpUserService.createAccount(payload);
     if (ctx && ctx.res) {
       const isProduction = process.env.NODE_ENV === "production";
-      const sameSiteSetting = isProduction ? "none" : "lax";
+      const sameSiteSetting = isProduction ? "none" : "none";
 
       // If sameSite is 'none', secure must be true
       const secureSetting = isProduction || sameSiteSetting === "none";
@@ -129,6 +114,7 @@ const mutations = {
         httpOnly: true,
         secure: secureSetting,
         sameSite: sameSiteSetting,
+        domain: isProduction ? ".kiduniya.in" : undefined,
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
     } else {
@@ -144,8 +130,16 @@ const mutations = {
     parent: any,
     { payload }: { payload: { email: string }; ctx: any }
   ) => {
-    const { email } = await SignUpUserService.resendOtp(payload);
-    return { email, next_page: "verifyotp" };
+    try {
+      const { email } = await SignUpUserService.resendOtp(payload);
+      return { email, next_page: "verifyotp" };
+    } catch (error) {
+      if (error instanceof BadRequestError) {
+        throw error;
+      }
+      console.error("Error resending otp", error);
+      throw new Error("An error occured.please try again.");
+    }
   },
 
   //login
@@ -155,45 +149,83 @@ const mutations = {
     { payload }: { payload: { email: string } },
     ctx: any
   ) => {
-    const { email } = await LoginUser.confirmedMail(payload);
+    try {
+      const { email } = await LoginUser.confirmedMail(payload);
 
-    return { email, next_page: "verifyotp" };
+      return { email, next_page: "verifyotp" };
+    } catch (error) {
+      if (
+        error instanceof BadRequestError ||
+        error instanceof NotFoundError ||
+        error instanceof ValidationError
+      ) {
+        throw error;
+      }
+      console.error("Error in confirmedmail:", error);
+      throw new Error("Internal server error.");
+    }
   },
   getLoginCreds: async (
     parent: any,
     { payload }: { payload: { email: string; authType: string } },
     ctx: any
   ) => {
-    const { authType } = payload;
+    try {
+      const { authType } = payload;
 
-    const { email } = await LoginUser.getLoginCreds(payload);
-    const nextPage = authType === "login" ? "verifypassword" : "confirmyou";
-    return { email, next_page: nextPage };
+      const { email } = await LoginUser.getLoginCreds(payload);
+      const nextPage = authType === "login" ? "verifypassword" : "confirmyou";
+      return { email, next_page: nextPage };
+    } catch (error) {
+      if (
+        error instanceof BadRequestError ||
+        error instanceof NotFoundError ||
+        error instanceof ValidationError
+      ) {
+        throw error;
+      }
+      console.error("Error in get login creds", error);
+      throw new Error("Internal server error");
+    }
   },
   checkLoginPassword: async (
     parent: any,
     { payload }: { payload: { email: string; password: string } },
     ctx: any
   ) => {
-    const { token } = await LoginUser.checkLoginPassword(payload);
-    if (ctx && ctx.res) {
-      const isProduction = process.env.NODE_ENV === "production";
-      const sameSiteSetting = isProduction ? "none" : "lax";
+    try {
+      const { token } = await LoginUser.checkLoginPassword(payload);
+      if (ctx && ctx.res) {
+        const isProduction = process.env.NODE_ENV === "production";
+        const sameSiteSetting = isProduction ? "none" : "lax";
 
-      // If sameSite is 'none', secure must be true
-      const secureSetting = isProduction || sameSiteSetting === "none";
+        // If sameSite is 'none', secure must be true
+        const secureSetting = isProduction || sameSiteSetting === "none";
 
-      ctx.res.cookie("token", token, {
-        httpOnly: true,
-        secure: true, // Must be true for cross-origin
-        sameSite: "none", // Must be "none" for cross-origin
-        maxAge: 3 * 24 * 60 * 60 * 1000,
-      });
-    } else {
-      throw new Error("Response object is not available in the context");
+        ctx.res.cookie("token", token, {
+          httpOnly: true,
+          secure: true, // Must be true for cross-origin
+          sameSite: "none", // Must be "none" for cross-origin
+          // domain: ".kiduniya.in",
+          domain: isProduction ? ".kiduniya.in" : undefined,
+          maxAge: 3 * 24 * 60 * 60 * 1000,
+        });
+      } else {
+        throw new Error("Response object is not available in the context");
+      }
+
+      return { message: "login successful", next_page: "signin" };
+    } catch (error) {
+      if (
+        error instanceof BadRequestError ||
+        error instanceof NotFoundError ||
+        error instanceof ValidationError
+      ) {
+        throw error;
+      }
+      console.error("Error in checkLoginPassword:", error);
+      throw new Error("An error occurred while checking your password.");
     }
-
-    return { message: "login successful", next_page: "signin" };
   },
 
   //edit profile
@@ -216,28 +248,40 @@ const mutations = {
     { payload }: { payload: { email: string; password: string } },
     ctx: any
   ) => {
-    const { token } = await LoginUser.resetPassword(payload);
-    if (ctx && ctx.res) {
-      const isProduction = process.env.NODE_ENV === "production";
-      const sameSiteSetting = isProduction ? "none" : "lax";
+    try {
+      const { token } = await LoginUser.resetPassword(payload);
+      if (ctx && ctx.res) {
+        const isProduction = process.env.NODE_ENV === "production";
+        const sameSiteSetting = isProduction ? "none" : "lax";
 
-      // If sameSite is 'none', secure must be true
-      const secureSetting = isProduction || sameSiteSetting === "none";
+        // If sameSite is 'none', secure must be true
+        const secureSetting = isProduction || sameSiteSetting === "none";
 
-      ctx.res.cookie("token", token, {
-        httpOnly: true,
-        secure: secureSetting,
-        sameSite: sameSiteSetting,
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      });
-    } else {
-      throw new Error("Response object is not available in the context");
+        ctx.res.cookie("token", token, {
+          httpOnly: true,
+          secure: secureSetting,
+          sameSite: sameSiteSetting,
+          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
+      } else {
+        throw new Error("Response object is not available in the context");
+      }
+
+      return {
+        message: "password reset successful",
+        next_page: "signin",
+      };
+    } catch (error) {
+      if (
+        error instanceof BadRequestError ||
+        error instanceof NotFoundError ||
+        error instanceof ValidationError
+      ) {
+        throw error;
+      }
+      console.error("Error in resetPassword:", error);
+      throw new Error("Internal server error");
     }
-
-    return {
-      message: "password reset successful",
-      next_page: "signin",
-    };
   },
 };
 
