@@ -4,7 +4,7 @@ import { uploadOnCloudinary } from "../services/cloudinary";
 
 const fileUploadRouter = express.Router();
 const previewImages = async (req: any, res: Response) => {
-  console.log(req.files,"req")
+  console.log(req.files, "req");
   const files = req.files;
 
   if (files.length == 0) {
