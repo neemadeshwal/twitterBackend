@@ -36,7 +36,7 @@ router.get(
 
     if (exisitingUser) {
       const token = await JWTService.generateTokenFromUser(exisitingUser);
-      res.cookie("token", token, { httpOnly: false, maxAge: 3600000*72 });
+      res.cookie("token", token, { httpOnly: false, maxAge: 3600000 * 72 });
       res.redirect(CLIENT_URL);
     } else {
       const firstName = req.user.name.givenName;
@@ -70,8 +70,18 @@ router.get(
       });
       const token = await JWTService.generateTokenFromUser(newUser);
       console.log(token, "token");
-      res.cookie("token", token, { httpOnly: false });
+      const isProduction = process.env.NODE_ENV === "production";
+      const sameSiteSetting = isProduction ? "none" : "none";
 
+      // If sameSite is 'none', secure must be true
+      const secureSetting = isProduction || sameSiteSetting === "none";
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: secureSetting,
+        sameSite: sameSiteSetting,
+        domain: isProduction ? ".kiduniya.in" : undefined,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days});
+      });
       res.redirect(CLIENT_URL);
     }
   }
