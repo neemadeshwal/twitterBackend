@@ -115,7 +115,7 @@ const mutations = {
         httpOnly: true,
         secure: true, // Always true for production and cross-origin
         sameSite: "none", // Required for cross-origin
-        domain: isProduction ? "https://twitterclonewebapp.kiduniya.in" : undefined,
+        domain: isProduction ? ".kiduniya.in" : undefined,
         maxAge: 3 * 24 * 60 * 60 * 1000
       });
     } else {
@@ -207,7 +207,7 @@ const mutations = {
           httpOnly: true,
           secure: true, // Always true for production and cross-origin
           sameSite: "none", // Required for cross-origin
-          domain: isProduction ? "https://twitterclonewebapp.kiduniya.in" : undefined,
+          domain: isProduction ? ".kiduniya.in" : undefined,
           maxAge: 3 * 24 * 60 * 60 * 1000
         });
       } else {
@@ -261,7 +261,7 @@ const mutations = {
           httpOnly: true,
           secure: true, // Always true for production and cross-origin
           sameSite: "none", // Required for cross-origin
-          domain: isProduction ?"https://twitterclonewebapp.kiduniya.in" : undefined,
+          domain: isProduction ?".kiduniya.in" : undefined,
           maxAge: 3 * 24 * 60 * 60 * 1000
         });
       } else {
