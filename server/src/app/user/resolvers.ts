@@ -113,10 +113,10 @@ const mutations = {
 
       ctx.res.cookie("token", token, {
         httpOnly: true,
-        secure: secureSetting,
-        sameSite: sameSiteSetting,
-        domain: isProduction ? CLIENT_URL : undefined,
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        secure: true, // Always true for production and cross-origin
+        sameSite: "none", // Required for cross-origin
+        domain: isProduction ? new URL(CLIENT_URL).hostname : undefined,
+        maxAge: 3 * 24 * 60 * 60 * 1000
       });
     } else {
       throw new Error("Response object is not available in the context");
@@ -205,11 +205,10 @@ const mutations = {
 
         ctx.res.cookie("token", token, {
           httpOnly: true,
-          secure: true, // Must be true for cross-origin
-          sameSite: "none", // Must be "none" for cross-origin
-          // domain: ".kiduniya.in",
-          domain: isProduction ? CLIENT_URL : undefined,
-          maxAge: 3 * 24 * 60 * 60 * 1000,
+          secure: true, // Always true for production and cross-origin
+          sameSite: "none", // Required for cross-origin
+          domain: isProduction ? new URL(CLIENT_URL).hostname : undefined,
+          maxAge: 3 * 24 * 60 * 60 * 1000
         });
       } else {
         throw new Error("Response object is not available in the context");
@@ -260,11 +259,10 @@ const mutations = {
 
         ctx.res.cookie("token", token, {
           httpOnly: true,
-          secure: true, // Must be true for cross-origin
-          sameSite: "none", // Must be "none" for cross-origin
-          // domain: ".kiduniya.in",
-          domain: isProduction ? CLIENT_URL : undefined,
-          maxAge: 3 * 24 * 60 * 60 * 1000,
+          secure: true, // Always true for production and cross-origin
+          sameSite: "none", // Required for cross-origin
+          domain: isProduction ? new URL(CLIENT_URL).hostname : undefined,
+          maxAge: 3 * 24 * 60 * 60 * 1000
         });
       } else {
         throw new Error("Response object is not available in the context");
