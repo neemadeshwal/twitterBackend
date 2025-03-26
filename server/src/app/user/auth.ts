@@ -45,7 +45,7 @@ router.get(
         httpOnly: true,
         secure: true, // Always true for production and cross-origin
         sameSite: "none", // Required for cross-origin
-        domain: isProduction ? new URL(CLIENT_URL).hostname : undefined,
+        domain: isProduction ? "https://twitterclonewebapp.kiduniya.in" : undefined,
         maxAge: 3 * 24 * 60 * 60 * 1000
       });
       res.redirect(CLIENT_URL);
@@ -90,7 +90,7 @@ router.get(
         httpOnly: true,
         secure: true, // Always true for production and cross-origin
         sameSite: "none", // Required for cross-origin
-        domain: isProduction ? new URL(CLIENT_URL).hostname : undefined,
+        domain: isProduction ? "https://twitterclonewebapp.kiduniya.in" : undefined,
         maxAge: 3 * 24 * 60 * 60 * 1000
       });
 
