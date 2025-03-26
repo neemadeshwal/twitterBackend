@@ -41,12 +41,14 @@ router.get(
 
       // If sameSite is 'none', secure must be true
       const secureSetting = isProduction || sameSiteSetting === "none";
-      res.cookie("token", token, {   httpOnly: true,
-        secure: secureSetting,
-        sameSite: sameSiteSetting,
-        domain: isProduction ? ".kiduniya.in" : undefined,
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days});
-      });
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: true, // Must be true for cross-origin
+        sameSite: "none", // Must be "none" for cross-origin
+        // domain: ".kiduniya.in",
+        domain: isProduction ? CLIENT_URL : undefined,
+        maxAge: 3 * 24 * 60 * 60 * 1000,
+      })
       res.redirect(CLIENT_URL);
     } else {
       const firstName = req.user.name.givenName;
@@ -85,12 +87,14 @@ router.get(
 
       // If sameSite is 'none', secure must be true
       const secureSetting = isProduction || sameSiteSetting === "none";
-      res.cookie("token", token, {   httpOnly: true,
-        secure: secureSetting,
-        sameSite: sameSiteSetting,
-        domain: isProduction ? ".kiduniya.in" : undefined,
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days});
-      });
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: true, // Must be true for cross-origin
+        sameSite: "none", // Must be "none" for cross-origin
+        // domain: ".kiduniya.in",
+        domain: isProduction ? CLIENT_URL : undefined,
+        maxAge: 3 * 24 * 60 * 60 * 1000,
+      })
 
       res.redirect(CLIENT_URL);
     }

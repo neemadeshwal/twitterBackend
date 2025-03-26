@@ -16,6 +16,7 @@ import {
   NotFoundError,
   ValidationError,
 } from "../../error/errors";
+import { CLIENT_URL } from "../../utils/constants";
 
 //queries
 
@@ -114,7 +115,7 @@ const mutations = {
         httpOnly: true,
         secure: secureSetting,
         sameSite: sameSiteSetting,
-        domain: isProduction ? ".kiduniya.in" : undefined,
+        domain: isProduction ? CLIENT_URL : undefined,
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
     } else {
@@ -207,7 +208,7 @@ const mutations = {
           secure: true, // Must be true for cross-origin
           sameSite: "none", // Must be "none" for cross-origin
           // domain: ".kiduniya.in",
-          domain: isProduction ? ".kiduniya.in" : undefined,
+          domain: isProduction ? CLIENT_URL : undefined,
           maxAge: 3 * 24 * 60 * 60 * 1000,
         });
       } else {
@@ -259,9 +260,11 @@ const mutations = {
 
         ctx.res.cookie("token", token, {
           httpOnly: true,
-          secure: secureSetting,
-          sameSite: sameSiteSetting,
-          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+          secure: true, // Must be true for cross-origin
+          sameSite: "none", // Must be "none" for cross-origin
+          // domain: ".kiduniya.in",
+          domain: isProduction ? CLIENT_URL : undefined,
+          maxAge: 3 * 24 * 60 * 60 * 1000,
         });
       } else {
         throw new Error("Response object is not available in the context");
