@@ -13,6 +13,7 @@
   "dependencies": {
     "@apollo/server": "^4.11.0",
     "@huggingface/inference": "^3.8.1",
+    "@huggingface/transformers": "^3.5.0",
     "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.3",
@@ -52,5 +53,6 @@
     "prisma": "^6.2.1",
     "tsc-watch": "^6.2.0",
     "typescript": "^5.6.3"
-  }
+  },
+  "keywords": []
 }
