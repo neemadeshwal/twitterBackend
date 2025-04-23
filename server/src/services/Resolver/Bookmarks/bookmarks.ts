@@ -36,7 +36,7 @@ class BookmarkService {
             },
           },
         });
-        return deleteTweet;
+        return { tweet: deleteTweet, msg: "tweet removed" };
       } else {
         const savedPost = await prismaClient.savedPost.create({
           data: {
@@ -44,7 +44,7 @@ class BookmarkService {
             userId: id,
           },
         });
-        return savedPost;
+        return { tweet: savedPost, msg: "tweet saved" };
       }
     } catch (error) {
       console.log("An error occured", error);
@@ -88,7 +88,7 @@ class BookmarkService {
             },
           },
         });
-        return deleteSavedComment;
+        return { comment: deleteSavedComment, msg: "comment removed" };
       } else {
         const savedComment = await prismaClient.savedPost.create({
           data: {
@@ -96,7 +96,7 @@ class BookmarkService {
             userId: id,
           },
         });
-        return savedComment;
+        return { comment: savedComment, msg: "comment saved" };
       }
     } catch (error) {
       console.log("An error occured", error);

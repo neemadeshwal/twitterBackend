@@ -1,6 +1,6 @@
 export const mutations = `#graphql
-toggleSaveTweet(payload:toggleSaveTweetInput):Tweet
-toggleSaveComment(payload:saveUnsaveCommentInput):Comment
+toggleSaveTweet(payload:toggleSaveTweetInput):savedTweetResponse
+toggleSaveComment(payload:saveUnsaveCommentInput):savedCommentResponse
 
 
 `;
