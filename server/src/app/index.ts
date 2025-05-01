@@ -24,6 +24,7 @@ import { GraphqlContext } from "../interfaces";
 import { CLIENT_URL, MAX_REQUEST_LIMIT } from "../utils/constants";
 import fileUploadRouter from "./fileUpload";
 import { BadRequestError } from "../error/errors";
+import { AI } from "./ai";
 
 // Constants
 
@@ -66,6 +67,7 @@ const typeDefs = `
   ${Repost.types}
   ${Search.types}
   ${Bookmarks.types}
+  ${AI.types}
 
   type Query {
     ${User.queries}
@@ -83,6 +85,7 @@ const typeDefs = `
     ${Follows.mutations}
     ${Repost.mutations}
     ${Bookmarks.mutations}
+    ${AI.mutations}
   }
 `;
 
@@ -103,6 +106,7 @@ const resolvers = {
     ...Follows.resolvers.mutations,
     ...Repost.resolvers.mutations,
     ...Bookmarks.resolvers.mutations,
+    ...AI.resolvers.mutations,
   },
   ...User.resolvers.extraResolvers,
   ...Tweet.resolvers.extraResolvers,

@@ -17,4 +17,14 @@ input toggleSaveTweetInput{
     tweetId:String
 }
 
+type savedTweetResponse{
+    tweet:Tweet
+    msg:String
+}
+
+type savedCommentResponse{
+    comment:Comment
+    msg:String
+}
+
 `;
